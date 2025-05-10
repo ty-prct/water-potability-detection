@@ -1,0 +1,6 @@
+/knn_model.pkl
+/lightgbm_model.pkl
+/logistic_regression_model.pkl
+/random_forest_model.pkl
+/svm_model.pkl
+/xgboost_model.pkl
