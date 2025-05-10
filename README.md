@@ -1,1 +1,1 @@
-# water-potability-detection
+# Water Potability Detection
