@@ -7,3 +7,8 @@ numpy
 pyyaml
 pytest
 pytest-dependency
+ipykernel
+plotly
+nbformat
+xgboost
+lightgbm

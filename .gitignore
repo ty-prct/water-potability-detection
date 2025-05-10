@@ -35,32 +35,32 @@ venv.bak/
 */.ipynb_checkpoints/*
 *.nbconvert.ipynb
 
-# Data files
-data/
-*.csv
-*.tsv
-*.xlsx
-*.xls
-*.json
-*.jsonl
-*.parquet
-*.feather
-*.h5
-*.hdf5
-*.sqlite
-*.db
+# # Data files
+# data/
+# *.csv
+# *.tsv
+# *.xlsx
+# *.xls
+# *.json
+# *.jsonl
+# *.parquet
+# *.feather
+# *.h5
+# *.hdf5
+# *.sqlite
+# *.db
 
-# Model files
-models/
-*.pt
-*.pth
-*.h5
-*.onnx
-*.pkl
-*.joblib
-*.model
-saved_models/
-checkpoints/
+# # Model files
+# models/
+# *.pt
+# *.pth
+# *.h5
+# *.onnx
+# *.pkl
+# *.joblib
+# *.model
+# saved_models/
+# checkpoints/
 
 # MLOps tools
 .dvc/
@@ -75,7 +75,7 @@ wandb/
 logs/
 *.log
 tensorboard/
-results/
+# results/
 output/
 *.out
 
