@@ -1,0 +1,115 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.env
+.venv
+env.bak/
+venv.bak/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+*.nbconvert.ipynb
+
+# Data files
+data/
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.json
+*.jsonl
+*.parquet
+*.feather
+*.h5
+*.hdf5
+*.sqlite
+*.db
+
+# Model files
+models/
+*.pt
+*.pth
+*.h5
+*.onnx
+*.pkl
+*.joblib
+*.model
+saved_models/
+checkpoints/
+
+# MLOps tools
+.dvc/
+.dvcignore
+mlruns/
+outputs/
+mlflow/
+wandb/
+.aim/
+
+# Logs and outputs
+logs/
+*.log
+tensorboard/
+results/
+output/
+*.out
+
+# Environment configuration
+.env
+.env.*
+!.env.example
+config.local.yaml
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Documentation
+docs/_build/
+site/
+
+# Large files tracking with Git LFS
+.gitattributes
