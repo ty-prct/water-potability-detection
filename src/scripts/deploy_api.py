@@ -26,7 +26,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Load the best model
-MODEL_PATH = "results/best_model.pkl"
+HOME = os.getcwd()
+# HOME = HOME[:HOME.find("scripts")]
+MODEL_PATH = HOME + "/results/best_model.pkl"
 try:
     with open(MODEL_PATH, "rb") as file:
         model = pickle.load(file)
