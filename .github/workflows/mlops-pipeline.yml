@@ -29,10 +29,52 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest pytest-cov httpx
+          # Install the package in development mode
+          pip install -e .
+          
+      - name: Create test folders and dummy model
+        run: |
+          mkdir -p models results
+          mkdir -p data monitoring logs web/static/css web/static/js web/templates
+          
+          # Create a dummy model for testing purposes
+          python -c "
+          import pickle
+          import os
+          from sklearn.ensemble import RandomForestClassifier
+          
+          # Create a simple dummy model
+          model = RandomForestClassifier(n_estimators=10)
+          
+          # Create dummy directories if they don't exist
+          os.makedirs('models', exist_ok=True)
+          os.makedirs('results', exist_ok=True)
+          
+          # Save the model
+          with open('models/random_forest_model.pkl', 'wb') as f:
+              pickle.dump(model, f)
+          
+          # Create symlink to best model
+          with open('results/best_model_20250511_000301.pkl', 'wb') as f:
+              pickle.dump(model, f)
+          
+          # Create symlink for best model
+          symlink_path = 'results/best_model.pkl'
+          if os.path.exists(symlink_path):
+              os.remove(symlink_path)
+          os.symlink('results/best_model_20250511_000301.pkl', symlink_path)
+          
+          print('Created dummy model files for testing')
+          "
 
       - name: Run tests
         run: |
-          pytest src/tests/ --cov=src
+          # Set PYTHONPATH to include the project root
+          PYTHONPATH=$PWD pytest src/tests/ --cov=src
+        env:
+          # Environment variables for tests
+          PYTHONPATH: ${{ github.workspace }}
+          TEST_MODE: "ci"  # Flag to indicate tests are running in CI
 
   train-and-evaluate:
     name: Train and Evaluate Model
