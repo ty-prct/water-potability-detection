@@ -38,9 +38,9 @@ jobs:
           mkdir -p models results data
 
           # Run a lightweight version of the pipeline to ensure test environment is ready
-          python src/scripts/prepare_data.py --test-mode
           python src/scripts/train_pipeline.py --test-mode
           python src/scripts/evaluate_pipeline.py --test-mode
+          python src/scripts/model_monitoring.py --test-mode
 
       - name: Run tests
         run: |
