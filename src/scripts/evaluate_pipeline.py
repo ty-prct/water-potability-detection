@@ -99,7 +99,7 @@ def evaluate_models():
 
     # Save best model with timestamp
     best_model_path = os.path.join(
-        RESULTS_FOLDER, f"best_model_{timestamp}.pkl")
+        RESULTS_FOLDER, f"best_model.pkl")
     with open(best_model_path, "wb") as file:
         pickle.dump(best_model, file)
 
