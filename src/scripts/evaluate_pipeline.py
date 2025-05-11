@@ -26,9 +26,10 @@ def evaluate_models():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     # Paths
-    DATA_FOLDER = "data/"
-    MODEL_FOLDER = "models/"
-    RESULTS_FOLDER = "results/"
+    HOME = os.getcwd()
+    DATA_FOLDER = HOME + "/data/"
+    MODEL_FOLDER = HOME + "/models/"
+    RESULTS_FOLDER = HOME + "/results/"
     os.makedirs(RESULTS_FOLDER, exist_ok=True)
 
     # Load test data
