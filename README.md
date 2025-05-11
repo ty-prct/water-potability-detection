@@ -10,6 +10,8 @@ This project implements an end-to-end MLOps pipeline for water potability detect
 - **Monitoring**: Real-time model monitoring for drift detection
 - **MLOps**: Continuous integration, deployment, and monitoring
 - **Docker**: Containerized deployment for portability
+- **A/B Testing**: Compare performance of different models in production
+- **Persistent Monitoring**: Robust monitoring with persistent storage of metrics
 
 ## Project Structure
 
@@ -95,6 +97,49 @@ Access the monitoring dashboards:
 
 - **Prometheus**: [http://localhost:9090](http://localhost:9090)
 - **Grafana**: [http://localhost:3000](http://localhost:3000) (default login: admin/admin)
+
+## MLOps Features
+
+### Model Monitoring
+
+This project includes comprehensive model monitoring capabilities:
+
+- **Data Drift Detection**: Automatically detect when the distribution of input data changes
+- **Performance Metrics Tracking**: Track model accuracy, latency, and other performance metrics over time
+- **Visualization**: Generate visualizations for monitoring reports
+- **Persistent Storage**: All monitoring data is stored persistently for historical analysis
+- **Alerting**: Configurable thresholds for alerting when metrics cross specified boundaries
+
+To access monitoring dashboards:
+
+```bash
+# Run the monitoring system
+python src/scripts/model_monitoring.py
+```
+
+Monitoring reports are stored in the `monitoring/` directory, and metrics history is saved in `logs/`.
+
+### A/B Testing
+
+The project supports A/B testing to compare different models in production:
+
+- **Traffic Splitting**: Configure the percentage of traffic to route to each model variant
+- **Performance Comparison**: Compare metrics between model variants
+- **API Controls**: Enable/disable A/B testing and adjust traffic split via API endpoints
+
+API endpoints for A/B testing:
+
+- `GET /api/ab-testing`: Get current A/B testing statistics and configuration
+- `POST /api/ab-testing/configure`: Configure A/B testing settings
+
+Example of configuring A/B testing:
+
+```bash
+# Enable A/B testing with 80/20 traffic split
+curl -X POST "http://localhost:8000/api/ab-testing/configure" \
+  -H "Content-Type: application/json" \
+  -d '{"enabled": true, "traffic_split": {"A": 0.8, "B": 0.2}}'
+```
 
 ## License
 

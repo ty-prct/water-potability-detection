@@ -48,7 +48,7 @@ def sample_water_quality():
 # Test if model file exists
 
 
-@pytest.mark.skipif(not os.path.exists("../results/best_model.pkl"), 
+@pytest.mark.skipif(not os.path.exists("results/best_model.pkl"), 
                     reason="Model file not found, skipping test")
 def test_model_exists():
     model_path = "../results/best_model.pkl"

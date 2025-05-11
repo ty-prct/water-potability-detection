@@ -99,16 +99,17 @@ def evaluate_models():
         y_test, y_pred_best, output_dict=True)
 
     # Save best model with timestamp
-    best_model_path = os.path.join(
-        RESULTS_FOLDER, f"best_model.pkl")
+    best_model_timestamp_path = os.path.join(
+        RESULTS_FOLDER, f"best_model_{timestamp}.pkl")
+    with open(best_model_timestamp_path, "wb") as file:
+        pickle.dump(best_model, file)
+    
+    # Save best model to standard path too (not using symlinks to ensure cross-platform compatibility)
+    best_model_path = os.path.join(RESULTS_FOLDER, "best_model.pkl")
     with open(best_model_path, "wb") as file:
         pickle.dump(best_model, file)
-
-    # Create a symlink to the best model
-    best_model_symlink = os.path.join(RESULTS_FOLDER, "best_model.pkl")
-    if os.path.exists(best_model_symlink):
-        os.remove(best_model_symlink)
-    os.symlink(best_model_path, best_model_symlink)
+    
+    logger.info(f"Best model saved to {best_model_timestamp_path} and {best_model_path}")
 
     # Save evaluation results
     evaluation_results = {
@@ -124,7 +125,6 @@ def evaluate_models():
         json.dump(evaluation_results, file, indent=4)
 
     logger.info(f"Evaluation results saved to {results_path}")
-    logger.info(f"Best model saved to {best_model_path}")
 
     # Extract feature importance if available
     if hasattr(best_model, 'feature_importances_'):

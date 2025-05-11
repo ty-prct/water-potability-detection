@@ -154,18 +154,17 @@ def train_model():
             pickle.dump(model, file)
         logger.info(f"Model saved to {model_path}")
 
-    # Save best model separately
+    # Save best model separately with timestamp
     best_model = models[best_model_name]
-    best_model_path = os.path.join(
+    best_model_timestamp_path = os.path.join(
         RESULTS_FOLDER, f"best_model_{timestamp}.pkl")
+    with open(best_model_timestamp_path, "wb") as file:
+        pickle.dump(best_model, file)
+    
+    # Save best model to standard path too (not using symlinks to ensure cross-platform compatibility)
+    best_model_path = os.path.join(RESULTS_FOLDER, "best_model.pkl")
     with open(best_model_path, "wb") as file:
         pickle.dump(best_model, file)
-
-    # Create a symlink to the best model
-    best_model_symlink = os.path.join(RESULTS_FOLDER, "best_model.pkl")
-    if os.path.exists(best_model_symlink):
-        os.remove(best_model_symlink)
-    os.symlink(best_model_path, best_model_symlink)
 
     # Save evaluation results
     evaluation_results = {
@@ -190,7 +189,7 @@ def train_model():
     logger.info(
         f"Best model: {best_model_name} with accuracy {best_score:.4f}")
     logger.info(f"Evaluation results saved to {results_path}")
-    logger.info(f"Best model saved to {best_model_path}")
+    logger.info(f"Best model saved to {best_model_timestamp_path} and {best_model_path}")
 
     return best_model_name, best_score
 

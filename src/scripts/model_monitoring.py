@@ -28,16 +28,49 @@ class ModelMonitor:
         self.api_url = api_url
         self.monitoring_dir = "monitoring"
         os.makedirs(self.monitoring_dir, exist_ok=True)
+        
+        # Create logs directory if it doesn't exist
+        logs_dir = "logs"
+        os.makedirs(logs_dir, exist_ok=True)
 
         # Track metrics over time
-        self.metrics_history = []
-        self.drift_history = []
-        self.predictions_log = []
+        self.metrics_history_file = os.path.join(logs_dir, "metrics_history.json")
+        self.drift_history_file = os.path.join(logs_dir, "drift_history.json")
+        self.predictions_log_file = os.path.join(logs_dir, "predictions_log.json")
+        
+        # Initialize or load existing metrics
+        self.metrics_history = self._load_json_file(self.metrics_history_file, [])
+        self.drift_history = self._load_json_file(self.drift_history_file, [])
+        self.predictions_log = self._load_json_file(self.predictions_log_file, [])
 
         # Reference data (baseline)
         self.reference_data = None
 
         logger.info("Model monitoring initialized")
+
+    def _load_json_file(self, file_path, default_value=None):
+        """Load data from a JSON file or return default value if file doesn't exist"""
+        if default_value is None:
+            default_value = []
+            
+        try:
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as f:
+                    return json.load(f)
+            return default_value
+        except Exception as e:
+            logger.error(f"Error loading data from {file_path}: {str(e)}")
+            return default_value
+            
+    def _save_json_file(self, file_path, data):
+        """Save data to a JSON file"""
+        try:
+            with open(file_path, 'w') as f:
+                json.dump(data, f, indent=4)
+            return True
+        except Exception as e:
+            logger.error(f"Error saving data to {file_path}: {str(e)}")
+            return False
 
     def load_reference_data(self, data_path="data/train_data.csv"):
         """Load reference data for comparison"""
@@ -76,6 +109,9 @@ class ModelMonitor:
                 # Add timestamp
                 metrics["timestamp"] = datetime.now().isoformat()
                 self.metrics_history.append(metrics)
+                
+                # Save updated metrics history
+                self._save_json_file(self.metrics_history_file, self.metrics_history)
 
                 return metrics
             else:
@@ -96,9 +132,18 @@ class ModelMonitor:
                 logger.info(f"Retrieved {len(predictions)} recent predictions")
 
                 # Add to predictions log
+                new_predictions_added = False
                 for pred in predictions:
                     if pred not in self.predictions_log:
                         self.predictions_log.append(pred)
+                        new_predictions_added = True
+                
+                # Save updated predictions log if there are new predictions
+                if new_predictions_added:
+                    # Keep only the last 1000 predictions to avoid huge files
+                    if len(self.predictions_log) > 1000:
+                        self.predictions_log = self.predictions_log[-1000:]
+                    self._save_json_file(self.predictions_log_file, self.predictions_log)
 
                 return predictions
             else:
@@ -167,6 +212,9 @@ class ModelMonitor:
         logger.info(
             f"Drift analysis: score={overall_drift:.4f}, drift_detected={result['drift_detected']}")
         self.drift_history.append(result)
+        
+        # Save updated drift history
+        self._save_json_file(self.drift_history_file, self.drift_history)
 
         return result
 
