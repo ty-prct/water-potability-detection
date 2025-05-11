@@ -2,12 +2,12 @@
 
 # Example Tests
 
-import pytest
+# import pytest
 import os
 import pandas as pd
 import pickle
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
+# from sklearn.metrics import accuracy_score
 
 
 def capital_case(x):
