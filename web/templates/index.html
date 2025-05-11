@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Potability Prediction</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <header class="mb-5 text-center">
+            <div class="header-content">
+                <h1>Water Potability Prediction</h1>
+                <p class="lead">Enter water quality parameters to determine if the water is potable</p>
+            </div>
+        </header>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Water Quality Input</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="predictionForm">
+                            <div class="mb-3">
+                                <label for="ph" class="form-label">pH Value (0-14)</label>
+                                <input type="number" class="form-control" id="ph" name="ph" step="0.01" min="0" max="14" required value="7.0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="Hardness" class="form-label">Hardness (mg/L)</label>
+                                <input type="number" class="form-control" id="Hardness" name="Hardness" step="0.01" min="0" required value="200.0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="Solids" class="form-label">Total Dissolved Solids (ppm)</label>
+                                <input type="number" class="form-control" id="Solids" name="Solids" step="0.01" min="0" required value="20000.0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="Chloramines" class="form-label">Chloramines (ppm)</label>
+                                <input type="number" class="form-control" id="Chloramines" name="Chloramines" step="0.01" min="0" required value="7.0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="Sulfate" class="form-label">Sulfate (mg/L)</label>
+                                <input type="number" class="form-control" id="Sulfate" name="Sulfate" step="0.01" min="0" required value="350.0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="Conductivity" class="form-label">Conductivity (μS/cm)</label>
+                                <input type="number" class="form-control" id="Conductivity" name="Conductivity" step="0.01" min="0" required value="550.0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="Organic_carbon" class="form-label">Organic Carbon (ppm)</label>
+                                <input type="number" class="form-control" id="Organic_carbon" name="Organic_carbon" step="0.01" min="0" required value="10.0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="Trihalomethanes" class="form-label">Trihalomethanes (μg/L)</label>
+                                <input type="number" class="form-control" id="Trihalomethanes" name="Trihalomethanes" step="0.01" min="0" required value="85.0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="Turbidity" class="form-label">Turbidity (NTU)</label>
+                                <input type="number" class="form-control" id="Turbidity" name="Turbidity" step="0.01" min="0" required value="3.0">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Predict Potability</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Prediction Result</h4>
+                    </div>
+                    <div class="card-body" id="resultSection">
+                        <div class="text-center p-5 text-muted">
+                            <p>Enter water quality parameters and click "Predict Potability" to see the prediction result.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Feature Importance</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="featureImportanceChart"></canvas>
+                        <div id="noFeatureImportance" class="text-center p-4 text-muted">
+                            <p>Feature importance will be displayed after prediction.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4>Model Information</h4>
+                        <button id="refreshMetricsBtn" class="btn btn-sm btn-outline-primary">Refresh Metrics</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="modelMetricsSection">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-striped">
+                                        <tbody id="metricsList">
+                                            <tr>
+                                                <td class="fw-bold">Loading metrics...</td>
+                                                <td></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <canvas id="metricsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-5 text-center text-muted">
+            <p>Water Potability Detection MLOps Project</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

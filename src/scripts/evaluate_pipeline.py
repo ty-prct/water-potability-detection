@@ -1,46 +1,136 @@
 import os
 import pickle
+import json
 import pandas as pd
-from sklearn.metrics import classification_report, accuracy_score
+import logging
+import argparse
+from datetime import datetime
+from sklearn.metrics import classification_report, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
-# Paths
-DATA_FOLDER = "data/"
-MODEL_FOLDER = "models/"
-RESULTS_FOLDER = "results/"
-os.makedirs(RESULTS_FOLDER, exist_ok=True)
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("evaluation.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
-# Load test data
-data = pd.read_csv(os.path.join(DATA_FOLDER, "test_data.csv"))
-X_test = data.drop("Potability", axis=1)
-y_test = data["Potability"]
-
-# Load models
-model_files = [f for f in os.listdir(MODEL_FOLDER) if f.endswith(".pkl")]
-
-best_model = None
-best_accuracy = 0
-
-for model_file in model_files:
-    model_path = os.path.join(MODEL_FOLDER, model_file)
-    with open(model_path, "rb") as file:
-        model = pickle.load(file)
+def evaluate_models():
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
-    # Evaluate model
-    y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"Model: {model_file}, Accuracy: {accuracy:.4f}")
+    # Paths
+    DATA_FOLDER = "data/"
+    MODEL_FOLDER = "models/"
+    RESULTS_FOLDER = "results/"
+    os.makedirs(RESULTS_FOLDER, exist_ok=True)
 
-    if accuracy > best_accuracy:
-        best_accuracy = accuracy
-        best_model = model
-        best_model_name = model_file
+    # Load test data
+    logger.info("Loading test data...")
+    data = pd.read_csv(os.path.join(DATA_FOLDER, "test_data.csv"))
+    X_test = data.drop("Potability", axis=1)
+    y_test = data["Potability"]
 
-# Save evaluation results
-results_path = os.path.join(RESULTS_FOLDER, "evaluation_results.txt")
-with open(results_path, "w") as file:
-    file.write(f"Best Model: {best_model_name}\n")
-    file.write(f"Accuracy: {best_accuracy:.4f}\n")
-    file.write("\nClassification Report:\n")
-    file.write(classification_report(y_test, best_model.predict(X_test)))
+    # Load models
+    model_files = [f for f in os.listdir(MODEL_FOLDER) if f.endswith(".pkl")]
+    logger.info(f"Found {len(model_files)} models to evaluate")
 
-print(f"Evaluation results saved to {results_path}")
+    best_model = None
+    best_model_name = None
+    best_accuracy = 0
+    results = {}
+
+    for model_file in model_files:
+        model_name = model_file.replace(".pkl", "")
+        model_path = os.path.join(MODEL_FOLDER, model_file)
+        
+        logger.info(f"Evaluating {model_name}...")
+        
+        # Load model
+        with open(model_path, "rb") as file:
+            model = pickle.load(file)
+        
+        # Evaluate model
+        y_pred = model.predict(X_test)
+        y_pred_proba = None
+        try:
+            y_pred_proba = model.predict_proba(X_test)[:, 1]
+        except:
+            # Some models might not have predict_proba
+            y_pred_proba = y_pred
+            
+        # Calculate metrics
+        accuracy = accuracy_score(y_test, y_pred)
+        precision = precision_score(y_test, y_pred)
+        recall = recall_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
+        roc_auc = roc_auc_score(y_test, y_pred_proba)
+        
+        logger.info(f"{model_name} - Accuracy: {accuracy:.4f}, F1: {f1:.4f}, ROC-AUC: {roc_auc:.4f}")
+        
+        # Store metrics
+        results[model_name] = {
+            "accuracy": accuracy,
+            "precision": precision,
+            "recall": recall,
+            "f1_score": f1,
+            "roc_auc": roc_auc
+        }
+        
+        # Track best model
+        if accuracy > best_accuracy:
+            best_accuracy = accuracy
+            best_model = model
+            best_model_name = model_name
+
+    # Generate detailed report for best model
+    logger.info(f"Best model: {best_model_name} with accuracy {best_accuracy:.4f}")
+    y_pred_best = best_model.predict(X_test)
+    best_model_report = classification_report(y_test, y_pred_best, output_dict=True)
+    
+    # Save best model with timestamp
+    best_model_path = os.path.join(RESULTS_FOLDER, f"best_model_{timestamp}.pkl")
+    with open(best_model_path, "wb") as file:
+        pickle.dump(best_model, file)
+    
+    # Create a symlink to the best model
+    best_model_symlink = os.path.join(RESULTS_FOLDER, "best_model.pkl")
+    if os.path.exists(best_model_symlink):
+        os.remove(best_model_symlink)
+    os.symlink(best_model_path, best_model_symlink)
+    
+    # Save evaluation results
+    evaluation_results = {
+        "best_model": best_model_name,
+        "timestamp": timestamp,
+        "test_metrics": results,
+        "best_model_detailed_report": best_model_report
+    }
+    
+    results_path = os.path.join(RESULTS_FOLDER, f"evaluation_results_{timestamp}.json")
+    with open(results_path, "w") as file:
+        json.dump(evaluation_results, file, indent=4)
+    
+    logger.info(f"Evaluation results saved to {results_path}")
+    logger.info(f"Best model saved to {best_model_path}")
+    
+    # Extract feature importance if available
+    if hasattr(best_model, 'feature_importances_'):
+        feature_importance = pd.DataFrame({
+            'feature': X_test.columns,
+            'importance': best_model.feature_importances_
+        }).sort_values('importance', ascending=False)
+        
+        importance_path = os.path.join(RESULTS_FOLDER, f"feature_importance_{timestamp}.csv")
+        feature_importance.to_csv(importance_path, index=False)
+        logger.info(f"Feature importance saved to {importance_path}")
+    
+    return best_model_name, best_accuracy
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Evaluate ML models for water potability prediction")
+    args = parser.parse_args()
+    
+    evaluate_models()

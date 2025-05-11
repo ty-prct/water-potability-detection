@@ -15,3 +15,9 @@ lightgbm
 dvc
 fastapi
 fastapi-cli
+uvicorn
+prometheus-client
+starlette-prometheus
+requests
+jinja2
+python-multipart
