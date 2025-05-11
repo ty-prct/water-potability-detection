@@ -16,7 +16,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 HOME = os.getcwd()
 # HOME = HOME[0:HOME.find("src")]
-DATA_FOLDER = HOME + "data/"
+DATA_FOLDER = HOME + "/data/"
 
 data = pd.read_csv(DATA_FOLDER + "data.csv")
 
