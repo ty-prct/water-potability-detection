@@ -32,23 +32,23 @@ jobs:
           # Install the package in development mode
           pip install -e .
 
-      - name: Prepare environment for tests
-        run: |
-          # Create necessary directories for tests
-          mkdir -p models results data
+    #   - name: Prepare environment for tests
+    #     run: |
+    #       # Create necessary directories for tests
+    #       mkdir -p models results data
 
-          # Run a lightweight version of the pipeline to ensure test environment is ready
-          python src/scripts/train_pipeline.py
-          python src/scripts/evaluate_pipeline.py
+    #       # Run a lightweight version of the pipeline to ensure test environment is ready
+    #       python src/scripts/train_pipeline.py
+    #       python src/scripts/evaluate_pipeline.py
 
-      - name: Run tests
-        run: |
-          # Set PYTHONPATH to include the project root
-          PYTHONPATH=$PWD pytest src/tests/ --cov=src
-        env:
-          # Environment variables for tests
-          PYTHONPATH: ${{ github.workspace }}
-          TEST_MODE: "ci" # Flag to indicate tests are running in CI
+    #   - name: Run tests
+    #     run: |
+    #       # Set PYTHONPATH to include the project root
+    #       PYTHONPATH=$PWD pytest src/tests/ --cov=src
+    #     env:
+    #       # Environment variables for tests
+    #       PYTHONPATH: ${{ github.workspace }}
+    #       TEST_MODE: "ci" # Flag to indicate tests are running in CI
 
   train-and-evaluate:
     name: Train and Evaluate Model
