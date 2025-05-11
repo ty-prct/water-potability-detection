@@ -32,9 +32,30 @@ python src/scripts/evaluate_pipeline.py
 echo -e "\n[4/7] Running tests..."
 pytest src/tests/
 
-# Build Docker image
-echo -e "\n[5/7] Building Docker image..."
-docker build -t water-potability:test .
+# Check Docker status and build Docker image
+echo -e "\n[5/7] Checking Docker status and building Docker image..."
+echo "Checking Docker service..."
+if systemctl is-active --quiet docker; then
+    echo "Docker service is running"
+else
+    echo "Docker service is not running, attempting to start..."
+    sudo systemctl start docker || true
+    sleep 2
+fi
+
+# Check if Docker is accessible
+if docker info &>/dev/null; then
+    echo "Docker is accessible, building image..."
+    docker build -t water-potability:test .
+else
+    echo "WARNING: Docker is not accessible. You may need to:"
+    echo "1. Ensure Docker is installed"
+    echo "2. Ensure Docker service is running: sudo systemctl start docker"
+    echo "3. Add your user to docker group: sudo usermod -aG docker \$USER"
+    echo "4. Log out and log back in for group changes to take effect"
+    echo "5. Or run the ./docker_troubleshoot.sh script for assistance"
+    echo "Skipping Docker build step..."
+fi
 
 # Run model monitoring (in background)
 echo -e "\n[6/7] Starting model monitoring..."

@@ -55,6 +55,21 @@ uvicorn src.scripts.deploy_api:app --reload
 docker-compose up --build
 ```
 
+   If you encounter Docker issues, try the troubleshooting script:
+   
+   ```bash
+   # Make the script executable
+   chmod +x docker_troubleshoot.sh
+   
+   # Run the script
+   ./docker_troubleshoot.sh
+   ```
+
+   Common Docker issues and solutions:
+   - **Connection refused error**: Docker daemon is not running. Start it with `sudo systemctl start docker`
+   - **Permission denied**: Add your user to the docker group with `sudo usermod -aG docker $USER` and log out and back in
+   - **Missing dependencies**: Install both Docker and Docker Compose
+
 4. Access the web interface at [http://localhost:8000](http://localhost:8000)
 
 ## MLOps Workflow

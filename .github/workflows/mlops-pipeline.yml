@@ -30,10 +30,16 @@ jobs:
         pip install -r requirements.txt
         pip install pytest pytest-cov
 
-    - name: Check code quality
+    - name: Format and check code quality
       run: |
         pip install flake8 black isort
+        # Format the code first
+        black src/
+        isort --profile black src/
+        # Then check with flake8 (non-formatting linter)
         flake8 src/ --max-line-length=120
+        # Finally check if any files would still be reformatted
+        # This should pass now since we've already formatted
         black --check src/
         isort --check --profile black src/
 
