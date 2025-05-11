@@ -15,7 +15,6 @@ from lightgbm import LGBMClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 
-import os
 HOME = os.getcwd()
 HOME = HOME[0:HOME.find("notebooks")]
 DATA_FOLDER = HOME + "data/"

@@ -5,9 +5,9 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import train_test_split
+# import seaborn as sns
+# from sklearn.metrics import confusion_matrix
+# from sklearn.model_selection import train_test_split
 import requests
 import time
 
@@ -129,7 +129,7 @@ class ModelMonitor:
             if col in self.ref_stats:
                 # Calculate statistics
                 curr_mean = pred_df[col].mean()
-                curr_std = pred_df[col].std()
+                # curr_std = pred_df[col].std()
 
                 # Calculate drift
                 mean_diff = abs(curr_mean - self.ref_stats[col]["mean"])
