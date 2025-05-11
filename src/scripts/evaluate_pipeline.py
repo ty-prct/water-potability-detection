@@ -18,9 +18,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 def evaluate_models():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    
+
     # Paths
     DATA_FOLDER = "data/"
     MODEL_FOLDER = "models/"
@@ -45,13 +46,13 @@ def evaluate_models():
     for model_file in model_files:
         model_name = model_file.replace(".pkl", "")
         model_path = os.path.join(MODEL_FOLDER, model_file)
-        
+
         logger.info(f"Evaluating {model_name}...")
-        
+
         # Load model
         with open(model_path, "rb") as file:
             model = pickle.load(file)
-        
+
         # Evaluate model
         y_pred = model.predict(X_test)
         y_pred_proba = None
@@ -60,16 +61,17 @@ def evaluate_models():
         except:
             # Some models might not have predict_proba
             y_pred_proba = y_pred
-            
+
         # Calculate metrics
         accuracy = accuracy_score(y_test, y_pred)
         precision = precision_score(y_test, y_pred)
         recall = recall_score(y_test, y_pred)
         f1 = f1_score(y_test, y_pred)
         roc_auc = roc_auc_score(y_test, y_pred_proba)
-        
-        logger.info(f"{model_name} - Accuracy: {accuracy:.4f}, F1: {f1:.4f}, ROC-AUC: {roc_auc:.4f}")
-        
+
+        logger.info(
+            f"{model_name} - Accuracy: {accuracy:.4f}, F1: {f1:.4f}, ROC-AUC: {roc_auc:.4f}")
+
         # Store metrics
         results[model_name] = {
             "accuracy": accuracy,
@@ -78,7 +80,7 @@ def evaluate_models():
             "f1_score": f1,
             "roc_auc": roc_auc
         }
-        
+
         # Track best model
         if accuracy > best_accuracy:
             best_accuracy = accuracy
@@ -86,21 +88,24 @@ def evaluate_models():
             best_model_name = model_name
 
     # Generate detailed report for best model
-    logger.info(f"Best model: {best_model_name} with accuracy {best_accuracy:.4f}")
+    logger.info(
+        f"Best model: {best_model_name} with accuracy {best_accuracy:.4f}")
     y_pred_best = best_model.predict(X_test)
-    best_model_report = classification_report(y_test, y_pred_best, output_dict=True)
-    
+    best_model_report = classification_report(
+        y_test, y_pred_best, output_dict=True)
+
     # Save best model with timestamp
-    best_model_path = os.path.join(RESULTS_FOLDER, f"best_model_{timestamp}.pkl")
+    best_model_path = os.path.join(
+        RESULTS_FOLDER, f"best_model_{timestamp}.pkl")
     with open(best_model_path, "wb") as file:
         pickle.dump(best_model, file)
-    
+
     # Create a symlink to the best model
     best_model_symlink = os.path.join(RESULTS_FOLDER, "best_model.pkl")
     if os.path.exists(best_model_symlink):
         os.remove(best_model_symlink)
     os.symlink(best_model_path, best_model_symlink)
-    
+
     # Save evaluation results
     evaluation_results = {
         "best_model": best_model_name,
@@ -108,29 +113,33 @@ def evaluate_models():
         "test_metrics": results,
         "best_model_detailed_report": best_model_report
     }
-    
-    results_path = os.path.join(RESULTS_FOLDER, f"evaluation_results_{timestamp}.json")
+
+    results_path = os.path.join(
+        RESULTS_FOLDER, f"evaluation_results_{timestamp}.json")
     with open(results_path, "w") as file:
         json.dump(evaluation_results, file, indent=4)
-    
+
     logger.info(f"Evaluation results saved to {results_path}")
     logger.info(f"Best model saved to {best_model_path}")
-    
+
     # Extract feature importance if available
     if hasattr(best_model, 'feature_importances_'):
         feature_importance = pd.DataFrame({
             'feature': X_test.columns,
             'importance': best_model.feature_importances_
         }).sort_values('importance', ascending=False)
-        
-        importance_path = os.path.join(RESULTS_FOLDER, f"feature_importance_{timestamp}.csv")
+
+        importance_path = os.path.join(
+            RESULTS_FOLDER, f"feature_importance_{timestamp}.csv")
         feature_importance.to_csv(importance_path, index=False)
         logger.info(f"Feature importance saved to {importance_path}")
-    
+
     return best_model_name, best_accuracy
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Evaluate ML models for water potability prediction")
+    parser = argparse.ArgumentParser(
+        description="Evaluate ML models for water potability prediction")
     args = parser.parse_args()
-    
+
     evaluate_models()

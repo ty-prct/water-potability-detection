@@ -26,14 +26,19 @@ def test_data_loading():
     assert not data.empty, "Clean data file is empty."
 
 # Test model loading
+
+
 def test_model_loading():
     model_path = "models/random_forest_model.pkl"
     assert os.path.exists(model_path), "Model file does not exist."
     with open(model_path, "rb") as file:
         model = pickle.load(file)
-    assert isinstance(model, RandomForestClassifier), "Loaded model is not a RandomForestClassifier."
+    assert isinstance(
+        model, RandomForestClassifier), "Loaded model is not a RandomForestClassifier."
 
 # Test model prediction
+
+
 def test_model_prediction():
     model_path = "models/random_forest_model.pkl"
     with open(model_path, "rb") as file:
@@ -54,4 +59,3 @@ def test_model_prediction():
 
     prediction = model.predict(sample_input)
     assert prediction in [[0], [1]], "Prediction is not valid."
-

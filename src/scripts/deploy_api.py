@@ -82,6 +82,8 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 # Define input data schema with validation
+
+
 class WaterQualityData(BaseModel):
     ph: float = Field(..., description="pH value of water", ge=0, le=14)
     Hardness: float = Field(..., description="Hardness of water", ge=0)
@@ -89,17 +91,19 @@ class WaterQualityData(BaseModel):
     Chloramines: float = Field(..., description="Chloramines level", ge=0)
     Sulfate: float = Field(..., description="Sulfate content", ge=0)
     Conductivity: float = Field(..., description="Conductivity of water", ge=0)
-    Organic_carbon: float = Field(..., description="Organic carbon content", ge=0)
-    Trihalomethanes: float = Field(..., description="Trihalomethanes level", ge=0)
+    Organic_carbon: float = Field(...,
+                                  description="Organic carbon content", ge=0)
+    Trihalomethanes: float = Field(...,
+                                   description="Trihalomethanes level", ge=0)
     Turbidity: float = Field(..., description="Turbidity level", ge=0)
-    
+
     # Add validators to check reasonable ranges
     @validator('ph')
     def ph_must_be_in_range(cls, v):
         if v < 0 or v > 14:
             raise ValueError('pH must be between 0 and 14')
         return v
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -116,6 +120,8 @@ class WaterQualityData(BaseModel):
         }
 
 # Model for prediction response
+
+
 class PredictionResponse(BaseModel):
     prediction: str
     probability: float
@@ -124,24 +130,27 @@ class PredictionResponse(BaseModel):
     input_data: Dict[str, float]
     feature_importance: Optional[List[Dict[str, Any]]] = None
 
+
 # Store predictions for monitoring
 predictions_log = []
 MAX_LOG_SIZE = 100
 
+
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
 
 @app.post("/api/predict", response_model=PredictionResponse)
 def predict(data: WaterQualityData):
     try:
         # Convert input data to DataFrame
         input_data = pd.DataFrame([data.dict()])
-        
+
         # Make prediction
         prediction = model.predict(input_data)[0]
         potability = "Potable" if prediction == 1 else "Non-Potable"
-        
+
         # Get probability if available
         probability = 0.0
         try:
@@ -149,7 +158,7 @@ def predict(data: WaterQualityData):
         except:
             # Some models don't support predict_proba
             probability = float(prediction)
-        
+
         # Get feature importance if available
         feature_importance = None
         if hasattr(model, 'feature_importances_'):
@@ -158,8 +167,9 @@ def predict(data: WaterQualityData):
                 for feature, importance in zip(input_data.columns, model.feature_importances_)
             ]
             # Sort by importance
-            feature_importance.sort(key=lambda x: x["importance"], reverse=True)
-        
+            feature_importance.sort(
+                key=lambda x: x["importance"], reverse=True)
+
         # Create response
         timestamp = datetime.now().isoformat()
         response = {
@@ -170,23 +180,27 @@ def predict(data: WaterQualityData):
             "input_data": data.dict(),
             "feature_importance": feature_importance
         }
-        
+
         # Log prediction for monitoring
         predictions_log.append(response)
         if len(predictions_log) > MAX_LOG_SIZE:
             predictions_log.pop(0)
-        
-        logger.info(f"Prediction: {potability}, Probability: {probability:.4f}")
+
+        logger.info(
+            f"Prediction: {potability}, Probability: {probability:.4f}")
         return response
-        
+
     except Exception as e:
         logger.error(f"Prediction error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Prediction error: {str(e)}")
+
 
 @app.get("/api/health")
 def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "model": best_model_name}
+
 
 @app.get("/api/metrics")
 def get_metrics():
@@ -200,12 +214,15 @@ def get_metrics():
         }
     except Exception as e:
         logger.error(f"Error retrieving metrics: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error retrieving metrics: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving metrics: {str(e)}")
+
 
 @app.get("/api/monitoring/recent_predictions")
 def get_recent_predictions():
     """Get recent predictions for monitoring"""
     return {"predictions": predictions_log[-20:]}  # Return last 20 predictions
+
 
 if __name__ == "__main__":
     uvicorn.run("deploy_api:app", host="0.0.0.0", port=8000, reload=True)
