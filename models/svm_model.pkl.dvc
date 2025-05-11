@@ -1,5 +1,0 @@
-outs:
-- md5: 0ef79cf95521a2607b61d87a4c5ac6c1
-  size: 25736
-  hash: md5
-  path: svm_model.pkl
