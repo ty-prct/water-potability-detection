@@ -6,7 +6,7 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -155,7 +155,7 @@ def predict(data: WaterQualityData):
         probability = 0.0
         try:
             probability = float(model.predict_proba(input_data)[0][1])
-        except:
+        except Exception:
             # Some models don't support predict_proba
             probability = float(prediction)
 
