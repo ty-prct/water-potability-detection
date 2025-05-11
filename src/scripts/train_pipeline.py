@@ -13,7 +13,6 @@ from sklearn.svm import SVC
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
-from sklearn.model_selection import train_test_split
 
 HOME = os.getcwd()
 HOME = HOME[0:HOME.find("notebooks")]
@@ -114,7 +113,7 @@ def train_model():
         y_pred_proba = None
         try:
             y_pred_proba = model.predict_proba(X_valid)[:, 1]
-        except:
+        except AttributeError:
             # Some models might not have predict_proba
             y_pred_proba = y_pred
 

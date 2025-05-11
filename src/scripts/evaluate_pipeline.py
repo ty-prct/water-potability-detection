@@ -5,7 +5,10 @@ import pandas as pd
 import logging
 import argparse
 from datetime import datetime
-from sklearn.metrics import classification_report, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.metrics import (
+    classification_report, accuracy_score, precision_score, 
+    recall_score, f1_score, roc_auc_score
+)
 
 # Set up logging
 logging.basicConfig(
@@ -58,7 +61,7 @@ def evaluate_models():
         y_pred_proba = None
         try:
             y_pred_proba = model.predict_proba(X_test)[:, 1]
-        except:
+        except AttributeError:
             # Some models might not have predict_proba
             y_pred_proba = y_pred
 
