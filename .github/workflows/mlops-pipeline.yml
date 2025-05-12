@@ -53,32 +53,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Setup DVC remote with ty-prct/dvc-cache
+      - name: Clone DVC cache repo
+        run: git clone https://github.com/ty-prct/dvc-cache.git ../dvc-cache
+
+      - name: Configure DVC remote
         run: |
-          # Clone the DVC cache repository
-          git clone https://github.com/ty-prct/dvc-cache.git ../dvc-cache
+          dvc remote remove cache || true
+          dvc remote add -d cache ../dvc-cache/.dvc/cache
+          dvc remote modify cache --unset cache.type
 
-          # Initialize DVC if not already initialized
-          if [ ! -d ".dvc" ]; then
-            dvc init
-          fi
-
-          # Add the remote cache from the cloned repository
-          dvc remote add -d cache ../dvc-cache/cache
-
-          # Configure the remote to use symlinks for optimization
-          dvc remote modify cache type symlink
-
-          # Pull data from the remote cache
-          dvc pull --force || echo "Warning: Some files may be missing in the cache."
-
-          # Display configured remotes for verification
           dvc remote list
 
       - name: Pull data with DVC
         run: |
           # Pull data from the configured remote
-          dvc pull -v --force
+          dvc pull --remote cache --verbose --force
 
       - name: Train model
         run: |
