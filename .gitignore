@@ -113,3 +113,6 @@ site/
 
 # Large files tracking with Git LFS
 .gitattributes
+/data
+/models
+/results
