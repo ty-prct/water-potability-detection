@@ -100,9 +100,7 @@ def evaluate_models():
     best_model_report = classification_report(y_test, y_pred_best, output_dict=True)
 
     # Save best model with timestamp
-    best_model_timestamp_path = os.path.join(
-        RESULTS_FOLDER, f"best_model_{timestamp}.pkl"
-    )
+    best_model_timestamp_path = os.path.join(RESULTS_FOLDER, "best_model.pkl")
     with open(best_model_timestamp_path, "wb") as file:
         pickle.dump(best_model, file)
 
@@ -123,7 +121,7 @@ def evaluate_models():
         "best_model_detailed_report": best_model_report,
     }
 
-    results_path = os.path.join(RESULTS_FOLDER, f"evaluation_results_{timestamp}.json")
+    results_path = os.path.join(RESULTS_FOLDER, "evaluation_results.json")
     with open(results_path, "w") as file:
         json.dump(evaluation_results, file, indent=4)
 
@@ -135,9 +133,7 @@ def evaluate_models():
             {"feature": X_test.columns, "importance": best_model.feature_importances_}
         ).sort_values("importance", ascending=False)
 
-        importance_path = os.path.join(
-            RESULTS_FOLDER, f"feature_importance_{timestamp}.csv"
-        )
+        importance_path = os.path.join(RESULTS_FOLDER, "feature_importance.csv")
         feature_importance.to_csv(importance_path, index=False)
         logger.info(f"Feature importance saved to {importance_path}")
 

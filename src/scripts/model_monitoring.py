@@ -219,7 +219,7 @@ class ModelMonitor:
     def generate_monitoring_report(self):
         """Generate a comprehensive monitoring report"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        report_dir = os.path.join(self.monitoring_dir, f"report_{timestamp}")
+        report_dir = os.path.join(self.monitoring_dir, "report")
         os.makedirs(report_dir, exist_ok=True)
 
         # Recent predictions analysis

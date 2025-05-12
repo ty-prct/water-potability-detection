@@ -163,9 +163,7 @@ def train_model():
 
     # Save best model separately with timestamp
     best_model = models[best_model_name]
-    best_model_timestamp_path = os.path.join(
-        RESULTS_FOLDER, f"best_model_{timestamp}.pkl"
-    )
+    best_model_timestamp_path = os.path.join(RESULTS_FOLDER, "best_model.pkl")
     with open(best_model_timestamp_path, "wb") as file:
         pickle.dump(best_model, file)
 
@@ -181,14 +179,14 @@ def train_model():
         "validation_metrics": results,
     }
 
-    results_path = os.path.join(RESULTS_FOLDER, f"evaluation_results_{timestamp}.json")
+    results_path = os.path.join(RESULTS_FOLDER, "evaluation_results.json")
     with open(results_path, "w") as file:
         json.dump(evaluation_results, file, indent=4)
 
     # Save feature importance if available
     if feature_importance is not None:
         feature_importance.to_csv(
-            os.path.join(RESULTS_FOLDER, f"feature_importance_{timestamp}.csv"),
+            os.path.join(RESULTS_FOLDER, "feature_importance.csv"),
             index=False,
         )
 
