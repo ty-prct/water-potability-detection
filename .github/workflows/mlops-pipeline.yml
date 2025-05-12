@@ -64,6 +64,7 @@ jobs:
       - name: Configure DVC remote
         working-directory: ${{ github.workspace }}
         run: |
+          dvc init
           dvc remote remove cache || true
           dvc remote add -d cache ../dvc-cache/.dvc/cache
           dvc remote modify cache --unset cache.type
