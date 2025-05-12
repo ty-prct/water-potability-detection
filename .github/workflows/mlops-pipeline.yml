@@ -116,7 +116,7 @@ jobs:
           dvc add models/*.pkl results/best_model*.pkl
 
           # Push them to the DVC cache
-          dvc push -v
+          dvc push --remote cache
 
           # Commit DVC metadata changes (autostaged)
           git add .
