@@ -2,6 +2,8 @@
 
 This project implements an end-to-end MLOps pipeline for water potability detection based on water quality parameters. The system uses machine learning to predict whether water is potable or not.
 
+---
+
 ## Features
 
 - **ML Pipeline**: Data preprocessing, model training, and evaluation
@@ -13,16 +15,31 @@ This project implements an end-to-end MLOps pipeline for water potability detect
 - **A/B Testing**: Compare performance of different models in production
 - **Persistent Monitoring**: Robust monitoring with persistent storage of metrics
 
+---
+
 ## Project Structure
 
-- `data/`: Training, validation, and test data (DVC tracked)
-- `notebooks/`: Jupyter notebooks for data exploration and model development
-- `models/`: Trained ML models (DVC tracked)
-- `results/`: Evaluation results and best model artifacts
-- `src/scripts/`: Python scripts for training, evaluation, and deployment
-- `src/tests/`: Unit and integration tests
-- `web/`: Frontend web application
-- `monitoring/`: Model monitoring configurations and dashboards
+```plaintext
+.
+├── data/                # Training, validation, and test data (DVC tracked)
+├── notebooks/           # Jupyter notebooks for data exploration and model development
+├── models/              # Trained ML models (DVC tracked)
+├── results/             # Evaluation results and best model artifacts
+├── src/                 # Source code for scripts and pipelines
+│   ├── scripts/         # Python scripts for training, evaluation, and deployment
+│   ├── tests/           # Unit and integration tests
+├── web/                 # Frontend web application
+│   ├── static/          # Static assets (CSS, JS, images)
+│   ├── templates/       # HTML templates
+├── monitoring/          # Model monitoring configurations and dashboards
+├── .github/             # GitHub Actions workflows for CI/CD
+├── setup.sh             # Setup script for the project
+├── Dockerfile           # Docker configuration for containerized deployment
+├── docker-compose.yml   # Docker Compose configuration
+└── README.md            # Project documentation
+```
+
+---
 
 ## Getting Started
 
@@ -58,11 +75,11 @@ docker-compose up --build
 ```
 
    If you encounter Docker issues, try the troubleshooting script:
-   
+
    ```bash
    # Make the script executable
    chmod +x docker_troubleshoot.sh
-   
+
    # Run the script
    ./docker_troubleshoot.sh
    ```
@@ -74,6 +91,8 @@ docker-compose up --build
 
 4. Access the web interface at [http://localhost:8000](http://localhost:8000)
 
+---
+
 ## MLOps Workflow
 
 1. **Data Version Control**: Data and models are tracked with DVC
@@ -83,6 +102,8 @@ docker-compose up --build
 5. **Monitoring**: Model performance and drift are continuously monitored
 6. **CI/CD**: GitHub Actions for testing, training, and deployment
 
+---
+
 ## API Endpoints
 
 - `GET /`: Web interface
@@ -91,12 +112,16 @@ docker-compose up --build
 - `GET /api/metrics`: Model performance metrics
 - `GET /metrics`: Prometheus metrics endpoint
 
+---
+
 ## Monitoring
 
 Access the monitoring dashboards:
 
 - **Prometheus**: [http://localhost:9090](http://localhost:9090)
 - **Grafana**: [http://localhost:3000](http://localhost:3000) (default login: admin/admin)
+
+---
 
 ## MLOps Features
 
@@ -119,6 +144,8 @@ python src/scripts/model_monitoring.py
 
 Monitoring reports are stored in the `monitoring/` directory, and metrics history is saved in `logs/`.
 
+---
+
 ### A/B Testing
 
 The project supports A/B testing to compare different models in production:
@@ -140,6 +167,23 @@ curl -X POST "http://localhost:8000/api/ab-testing/configure" \
   -H "Content-Type: application/json" \
   -d '{"enabled": true, "traffic_split": {"A": 0.8, "B": 0.2}}'
 ```
+
+---
+
+## Testing
+
+The project uses Pytest for testing. To run tests:
+
+```bash
+pytest src/tests/
+```
+
+Tests include:
+
+- Unit tests for individual functions.
+- Integration tests for pipelines and APIs.
+
+---
 
 ## License
 
