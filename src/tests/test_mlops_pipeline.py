@@ -1,13 +1,16 @@
 import os
-import sys
+
 # import json
 import pickle
+import sys
+
 # import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 
 # Add project root to path if needed
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+project_root = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), "..", ".."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
@@ -17,9 +20,10 @@ try:
 except ModuleNotFoundError:
     # Alternative import if the module path doesn't work
     import importlib.util
+
     spec = importlib.util.spec_from_file_location(
-        "deploy_api", 
-        os.path.join(project_root, "src", "scripts", "deploy_api.py")
+        "deploy_api", os.path.join(
+            project_root, "src", "scripts", "deploy_api.py")
     )
     deploy_api = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(deploy_api)
@@ -42,16 +46,23 @@ def sample_water_quality():
         "Conductivity": 564.31,
         "Organic_carbon": 10.38,
         "Trihalomethanes": 86.99,
-        "Turbidity": 2.96
+        "Turbidity": 2.96,
     }
 
+
+HOME = os.getcwd()
+DATA_FOLDER = HOME + "/data/"
+MODEL_FOLDER = HOME + "/models/"
+RESULTS_FOLDER = HOME + "/results/"
 # Test if model file exists
 
 
-@pytest.mark.skipif(not os.path.exists("results/best_model.pkl"), 
-                    reason="Model file not found, skipping test")
+@pytest.mark.skipif(
+    not os.path.exists(RESULTS_FOLDER + "best_model.pkl"),
+    reason="Model file not found, skipping test",
+)
 def test_model_exists():
-    model_path = "../results/best_model.pkl"
+    model_path = RESULTS_FOLDER + "best_model.pkl"
     assert os.path.isfile(model_path), f"Model file not found at {model_path}"
 
     # Test if model can be loaded
@@ -61,6 +72,7 @@ def test_model_exists():
         assert model is not None, "Failed to load model"
     except (FileNotFoundError, EOFError, pickle.UnpicklingError) as e:
         pytest.skip(f"Error loading model: {str(e)}")
+
 
 # Test API health endpoint
 
@@ -76,6 +88,7 @@ def test_health_endpoint():
         assert "model" in data
     except Exception as e:
         pytest.skip(f"API endpoint test failed: {str(e)}")
+
 
 # Test metrics endpoint
 
@@ -97,6 +110,7 @@ def test_metrics_endpoint():
     except Exception as e:
         pytest.skip(f"API metrics endpoint test failed: {str(e)}")
 
+
 # Test prediction endpoint
 
 
@@ -115,6 +129,7 @@ def test_prediction_endpoint(sample_water_quality):
     except Exception as e:
         pytest.skip(f"API prediction endpoint test failed: {str(e)}")
 
+
 # Test invalid input handling
 
 
@@ -131,7 +146,7 @@ def test_invalid_input():
             "Conductivity": 564.31,
             "Organic_carbon": 10.38,
             "Trihalomethanes": 86.99,
-            "Turbidity": 2.96
+            "Turbidity": 2.96,
         }
         response = client.post("/api/predict", json=invalid_data)
         assert response.status_code == 422  # Unprocessable Entity
@@ -146,12 +161,13 @@ def test_invalid_input():
             "Conductivity": 564.31,
             "Organic_carbon": 10.38,
             "Trihalomethanes": 86.99,
-            "Turbidity": 2.96
+            "Turbidity": 2.96,
         }
         response = client.post("/api/predict", json=invalid_data)
         assert response.status_code == 422  # Unprocessable Entity
     except Exception as e:
         pytest.skip(f"API invalid input test failed: {str(e)}")
+
 
 # Test if model gives consistent results
 

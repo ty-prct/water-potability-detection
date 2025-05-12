@@ -1,23 +1,25 @@
+import argparse
+import json
+import logging
 import os
 import pickle
-import json
-import pandas as pd
-import logging
-import argparse
 from datetime import datetime
+
+import pandas as pd
 from sklearn.metrics import (
-    classification_report, accuracy_score, precision_score,
-    recall_score, f1_score, roc_auc_score
+    accuracy_score,
+    classification_report,
+    f1_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
 )
 
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("evaluation.log"),
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("evaluation.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -74,7 +76,8 @@ def evaluate_models():
         roc_auc = roc_auc_score(y_test, y_pred_proba)
 
         logger.info(
-            f"{model_name} - Accuracy: {accuracy:.4f}, F1: {f1:.4f}, ROC-AUC: {roc_auc:.4f}")
+            f"{model_name} - Accuracy: {accuracy:.4f}, F1: {f1:.4f}, ROC-AUC: {roc_auc:.4f}"
+        )
 
         # Store metrics
         results[model_name] = {
@@ -82,7 +85,7 @@ def evaluate_models():
             "precision": precision,
             "recall": recall,
             "f1_score": f1,
-            "roc_auc": roc_auc
+            "roc_auc": roc_auc,
         }
 
         # Track best model
@@ -92,49 +95,49 @@ def evaluate_models():
             best_model_name = model_name
 
     # Generate detailed report for best model
-    logger.info(
-        f"Best model: {best_model_name} with accuracy {best_accuracy:.4f}")
+    logger.info(f"Best model: {best_model_name} with accuracy {best_accuracy:.4f}")
     y_pred_best = best_model.predict(X_test)
-    best_model_report = classification_report(
-        y_test, y_pred_best, output_dict=True)
+    best_model_report = classification_report(y_test, y_pred_best, output_dict=True)
 
     # Save best model with timestamp
     best_model_timestamp_path = os.path.join(
-        RESULTS_FOLDER, f"best_model_{timestamp}.pkl")
+        RESULTS_FOLDER, f"best_model_{timestamp}.pkl"
+    )
     with open(best_model_timestamp_path, "wb") as file:
         pickle.dump(best_model, file)
-    
+
     # Save best model to standard path too (not using symlinks to ensure cross-platform compatibility)
     best_model_path = os.path.join(RESULTS_FOLDER, "best_model.pkl")
     with open(best_model_path, "wb") as file:
         pickle.dump(best_model, file)
-    
-    logger.info(f"Best model saved to {best_model_timestamp_path} and {best_model_path}")
+
+    logger.info(
+        f"Best model saved to {best_model_timestamp_path} and {best_model_path}"
+    )
 
     # Save evaluation results
     evaluation_results = {
         "best_model": best_model_name,
         "timestamp": timestamp,
         "test_metrics": results,
-        "best_model_detailed_report": best_model_report
+        "best_model_detailed_report": best_model_report,
     }
 
-    results_path = os.path.join(
-        RESULTS_FOLDER, f"evaluation_results_{timestamp}.json")
+    results_path = os.path.join(RESULTS_FOLDER, f"evaluation_results_{timestamp}.json")
     with open(results_path, "w") as file:
         json.dump(evaluation_results, file, indent=4)
 
     logger.info(f"Evaluation results saved to {results_path}")
 
     # Extract feature importance if available
-    if hasattr(best_model, 'feature_importances_'):
-        feature_importance = pd.DataFrame({
-            'feature': X_test.columns,
-            'importance': best_model.feature_importances_
-        }).sort_values('importance', ascending=False)
+    if hasattr(best_model, "feature_importances_"):
+        feature_importance = pd.DataFrame(
+            {"feature": X_test.columns, "importance": best_model.feature_importances_}
+        ).sort_values("importance", ascending=False)
 
         importance_path = os.path.join(
-            RESULTS_FOLDER, f"feature_importance_{timestamp}.csv")
+            RESULTS_FOLDER, f"feature_importance_{timestamp}.csv"
+        )
         feature_importance.to_csv(importance_path, index=False)
         logger.info(f"Feature importance saved to {importance_path}")
 
@@ -143,7 +146,8 @@ def evaluate_models():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Evaluate ML models for water potability prediction")
+        description="Evaluate ML models for water potability prediction"
+    )
     args = parser.parse_args()
 
     evaluate_models()

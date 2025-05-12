@@ -15,7 +15,7 @@ COPY requirements.txt /app/
 
 # Install dependencies
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir -q -r requirements.txt
 
 # Copy the application code
 COPY . /app/

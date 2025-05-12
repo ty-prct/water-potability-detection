@@ -32,24 +32,6 @@ jobs:
           # Install the package in development mode
           pip install -e .
 
-    #   - name: Prepare environment for tests
-    #     run: |
-    #       # Create necessary directories for tests
-    #       mkdir -p models results data
-
-    #       # Run a lightweight version of the pipeline to ensure test environment is ready
-    #       python src/scripts/train_pipeline.py
-    #       python src/scripts/evaluate_pipeline.py
-
-    #   - name: Run tests
-    #     run: |
-    #       # Set PYTHONPATH to include the project root
-    #       PYTHONPATH=$PWD pytest src/tests/ --cov=src
-    #     env:
-    #       # Environment variables for tests
-    #       PYTHONPATH: ${{ github.workspace }}
-    #       TEST_MODE: "ci" # Flag to indicate tests are running in CI
-
   train-and-evaluate:
     name: Train and Evaluate Model
     runs-on: ubuntu-latest
@@ -71,11 +53,31 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install dvc dvc-s3
+          pip install dvc dvc-git
+
+      - name: Setup DVC remote with ty-prct/dvc-cache
+        run: |
+          # Clone the DVC cache repository
+          git clone https://github.com/ty-prct/dvc-cache.git ../dvc-cache
+
+          # Initialize DVC if not already initialized
+          if [ ! -d ".dvc" ]; then
+            dvc init
+          fi
+
+          # Add the remote cache from the cloned repository
+          dvc remote add -d cache ../dvc-cache/cache
+
+          # Configure the remote to use symlinks for optimization
+          dvc remote modify cache cache.type symlink
+
+          # Display configured remotes for verification
+          dvc remote list
 
       - name: Pull data with DVC
         run: |
-          dvc pull
+          # Pull data from the configured remote
+          dvc pull -v
 
       - name: Train model
         run: |
@@ -96,10 +98,17 @@ jobs:
 
       - name: Update DVC tracked files
         run: |
+          # Track new model files with DVC
           dvc add models/*.pkl results/best_model*.pkl
-          dvc push
+
+          # Push tracked files to the DVC remote
+          dvc push -v
+
+          # Configure git for committing changes
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+
+          # Commit and push DVC metadata changes
           git add .
           git commit -m "Update model artifacts [skip ci]" || echo "No changes to commit"
           git push

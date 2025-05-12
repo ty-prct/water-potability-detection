@@ -1,27 +1,25 @@
+import json
+import logging
 import os
 import pickle
-import json
-import pandas as pd
-import logging
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
+import uvicorn
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware
-from starlette_prometheus import PrometheusMiddleware, metrics
 from pydantic import BaseModel, Field, validator
-import uvicorn
+from starlette_prometheus import PrometheusMiddleware, metrics
 
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("api.log"),
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("api.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -49,7 +47,7 @@ try:
     model_files = [f for f in os.listdir(MODELS_DIR) if f.endswith(".pkl")]
     if model_files:
         # Use any model that's not the same as Model A for A/B testing
-        MODEL_B_PATH = os.path.join(MODELS_DIR, model_files[0])  
+        MODEL_B_PATH = os.path.join(MODELS_DIR, model_files[0])
         with open(MODEL_B_PATH, "rb") as file:
             models["B"] = pickle.load(file)
         logger.info(f"Model B (secondary) loaded from {MODEL_B_PATH}")
@@ -73,7 +71,7 @@ except Exception as e:
 app = FastAPI(
     title="Water Potability Prediction API",
     description="This API predicts whether water is potable or not based on quality metrics.",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # A/B testing configuration
@@ -82,8 +80,8 @@ ab_testing_config = {
     "traffic_split": {"A": 0.90, "B": 0.10},  # 90% model A, 10% model B
     "metrics": {
         "A": {"requests": 0, "accuracy": 0, "latency_ms": []},
-        "B": {"requests": 0, "accuracy": 0, "latency_ms": []}
-    }
+        "B": {"requests": 0, "accuracy": 0, "latency_ms": []},
+    },
 }
 
 # Add CORS middleware
@@ -125,17 +123,15 @@ class WaterQualityData(BaseModel):
     Chloramines: float = Field(..., description="Chloramines level", ge=0)
     Sulfate: float = Field(..., description="Sulfate content", ge=0)
     Conductivity: float = Field(..., description="Conductivity of water", ge=0)
-    Organic_carbon: float = Field(...,
-                                  description="Organic carbon content", ge=0)
-    Trihalomethanes: float = Field(...,
-                                   description="Trihalomethanes level", ge=0)
+    Organic_carbon: float = Field(..., description="Organic carbon content", ge=0)
+    Trihalomethanes: float = Field(..., description="Trihalomethanes level", ge=0)
     Turbidity: float = Field(..., description="Turbidity level", ge=0)
 
     # Add validators to check reasonable ranges
-    @validator('ph')
+    @validator("ph")
     def ph_must_be_in_range(cls, v):
         if v < 0 or v > 14:
-            raise ValueError('pH must be between 0 and 14')
+            raise ValueError("pH must be between 0 and 14")
         return v
 
     class Config:
@@ -149,9 +145,10 @@ class WaterQualityData(BaseModel):
                 "Conductivity": 564.31,
                 "Organic_carbon": 10.38,
                 "Trihalomethanes": 86.99,
-                "Turbidity": 2.96
+                "Turbidity": 2.96,
             }
         }
+
 
 # Model for prediction response
 
@@ -180,7 +177,7 @@ def predict(data: WaterQualityData):
     try:
         # Record start time for latency tracking
         start_time = datetime.now()
-        
+
         # Convert input data to DataFrame
         input_data = pd.DataFrame([data.dict()])
 
@@ -188,6 +185,7 @@ def predict(data: WaterQualityData):
         model_version = "A"  # Default to A
         if ab_testing_config["enabled"]:
             import random
+
             # Simple weighted random selection
             if random.random() > ab_testing_config["traffic_split"]["A"]:
                 model_version = "B"
@@ -196,7 +194,7 @@ def predict(data: WaterQualityData):
                 selected_model = models["A"]
         else:
             selected_model = model  # Use default model
-            
+
         # Track request
         ab_testing_config["metrics"][model_version]["requests"] += 1
 
@@ -214,23 +212,25 @@ def predict(data: WaterQualityData):
 
         # Get feature importance if available
         feature_importance = None
-        if hasattr(selected_model, 'feature_importances_'):
+        if hasattr(selected_model, "feature_importances_"):
             feature_importance = [
                 {"feature": feature, "importance": float(importance)}
-                for feature, importance in zip(input_data.columns, selected_model.feature_importances_)
+                for feature, importance in zip(
+                    input_data.columns, selected_model.feature_importances_
+                )
             ]
             # Sort by importance
-            feature_importance.sort(
-                key=lambda x: x["importance"], reverse=True)
+            feature_importance.sort(key=lambda x: x["importance"], reverse=True)
 
         # Calculate latency
         latency_ms = (datetime.now() - start_time).total_seconds() * 1000
         ab_testing_config["metrics"][model_version]["latency_ms"].append(latency_ms)
-        
+
         # Keep only last 100 latency measurements
         if len(ab_testing_config["metrics"][model_version]["latency_ms"]) > 100:
-            ab_testing_config["metrics"][model_version]["latency_ms"] = \
-                ab_testing_config["metrics"][model_version]["latency_ms"][-100:]
+            ab_testing_config["metrics"][model_version][
+                "latency_ms"
+            ] = ab_testing_config["metrics"][model_version]["latency_ms"][-100:]
 
         # Create response
         timestamp = datetime.now().isoformat()
@@ -241,7 +241,7 @@ def predict(data: WaterQualityData):
             "model_used": model_name,
             "timestamp": timestamp,
             "input_data": data.dict(),
-            "feature_importance": feature_importance
+            "feature_importance": feature_importance,
         }
 
         # Log prediction for monitoring
@@ -250,13 +250,13 @@ def predict(data: WaterQualityData):
             predictions_log.pop(0)
 
         logger.info(
-            f"Prediction: {potability}, Probability: {probability:.4f}, Model: {model_name}, Latency: {latency_ms:.2f}ms")
+            f"Prediction: {potability}, Probability: {probability:.4f}, Model: {model_name}, Latency: {latency_ms:.2f}ms"
+        )
         return response
 
     except Exception as e:
         logger.error(f"Prediction error: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Prediction error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
 
 
 @app.get("/api/health")
@@ -273,12 +273,13 @@ def get_metrics():
             evaluation_data = json.load(f)
         return {
             "model": evaluation_data.get("best_model", "unknown"),
-            "metrics": evaluation_data.get("test_metrics", {}).get(best_model_name, {})
+            "metrics": evaluation_data.get("test_metrics", {}).get(best_model_name, {}),
         }
     except Exception as e:
         logger.error(f"Error retrieving metrics: {str(e)}")
         raise HTTPException(
-            status_code=500, detail=f"Error retrieving metrics: {str(e)}")
+            status_code=500, detail=f"Error retrieving metrics: {str(e)}"
+        )
 
 
 @app.get("/api/monitoring/recent_predictions")
@@ -293,51 +294,46 @@ def get_ab_testing_stats():
     stats = {
         "enabled": ab_testing_config["enabled"],
         "traffic_split": ab_testing_config["traffic_split"],
-        "metrics": {}
+        "metrics": {},
     }
-    
+
     # Calculate statistics for each model
     for version, metrics in ab_testing_config["metrics"].items():
         avg_latency = 0
         if metrics["latency_ms"]:
             avg_latency = sum(metrics["latency_ms"]) / len(metrics["latency_ms"])
-            
+
         stats["metrics"][version] = {
             "requests": metrics["requests"],
             "avg_latency_ms": round(avg_latency, 2),
-            "success_rate": metrics["accuracy"] / max(1, metrics["requests"])
+            "success_rate": metrics["accuracy"] / max(1, metrics["requests"]),
         }
-    
+
     return stats
 
 
 @app.post("/api/ab-testing/configure")
-def configure_ab_testing(traffic_split: Dict[str, float] = None, enabled: bool = None):
+def configure_ab_testing(config: dict):
     """Configure A/B testing parameters"""
-    if not "B" in models:
-        raise HTTPException(status_code=400, detail="Model B not available, cannot enable A/B testing")
-    
-    if enabled is not None:
-        ab_testing_config["enabled"] = enabled
-    
-    if traffic_split:
-        # Validate traffic split (must sum to 1.0)
-        if abs(sum(traffic_split.values()) - 1.0) > 0.01:
+    # Validate the config
+    if "enabled" in config:
+        ab_testing_config["enabled"] = config["enabled"]
+
+    if "traffic_split" in config:
+        # Ensure traffic split sums to 1.0
+        if abs(sum(config["traffic_split"].values()) - 1.0) > 0.001:
             raise HTTPException(status_code=400, detail="Traffic split must sum to 1.0")
-        
-        # Must include A and B
-        if "A" not in traffic_split or "B" not in traffic_split:
-            raise HTTPException(status_code=400, detail="Traffic split must include both A and B")
-            
-        ab_testing_config["traffic_split"] = traffic_split
-    
-    return {
-        "status": "success",
-        "config": {
-            "enabled": ab_testing_config["enabled"],
-            "traffic_split": ab_testing_config["traffic_split"]
-        }
-    }
+
+        # Ensure both versions are included
+        if not all(v in config["traffic_split"] for v in ["A", "B"]):
+            raise HTTPException(
+                status_code=400,
+                detail="Traffic split must include both 'A' and 'B' versions",
+            )
+
+        ab_testing_config["traffic_split"] = config["traffic_split"]
+
+    return {"status": "success", "config": ab_testing_config}
 
 
 if __name__ == "__main__":

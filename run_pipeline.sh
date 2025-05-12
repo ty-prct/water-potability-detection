@@ -18,6 +18,7 @@ echo -e "\n[1/7] Setting up environment..."
 # Activate virtual environment if exists
 if [ -d "venv" ]; then
     source venv/bin/activate
+    pip install -q -r requirements.txt --no-cache-dir
 fi
 
 # Run training pipeline

@@ -1,24 +1,23 @@
-import os
 import json
 import logging
-import pandas as pd
-import numpy as np
+import os
+import time
 from datetime import datetime
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
 # import seaborn as sns
 # from sklearn.metrics import confusion_matrix
 # from sklearn.model_selection import train_test_split
 import requests
-import time
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("monitoring.log"),
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("monitoring.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -28,7 +27,7 @@ class ModelMonitor:
         self.api_url = api_url
         self.monitoring_dir = "monitoring"
         os.makedirs(self.monitoring_dir, exist_ok=True)
-        
+
         # Create logs directory if it doesn't exist
         logs_dir = "logs"
         os.makedirs(logs_dir, exist_ok=True)
@@ -37,7 +36,7 @@ class ModelMonitor:
         self.metrics_history_file = os.path.join(logs_dir, "metrics_history.json")
         self.drift_history_file = os.path.join(logs_dir, "drift_history.json")
         self.predictions_log_file = os.path.join(logs_dir, "predictions_log.json")
-        
+
         # Initialize or load existing metrics
         self.metrics_history = self._load_json_file(self.metrics_history_file, [])
         self.drift_history = self._load_json_file(self.drift_history_file, [])
@@ -52,20 +51,20 @@ class ModelMonitor:
         """Load data from a JSON file or return default value if file doesn't exist"""
         if default_value is None:
             default_value = []
-            
+
         try:
             if os.path.exists(file_path):
-                with open(file_path, 'r') as f:
+                with open(file_path, "r") as f:
                     return json.load(f)
             return default_value
         except Exception as e:
             logger.error(f"Error loading data from {file_path}: {str(e)}")
             return default_value
-            
+
     def _save_json_file(self, file_path, data):
         """Save data to a JSON file"""
         try:
-            with open(file_path, 'w') as f:
+            with open(file_path, "w") as f:
                 json.dump(data, f, indent=4)
             return True
         except Exception as e:
@@ -89,7 +88,7 @@ class ModelMonitor:
                         "max": self.reference_data[col].max(),
                         "q25": self.reference_data[col].quantile(0.25),
                         "q50": self.reference_data[col].quantile(0.50),
-                        "q75": self.reference_data[col].quantile(0.75)
+                        "q75": self.reference_data[col].quantile(0.75),
                     }
 
             logger.info(f"Reference data loaded: {self.reference_data.shape}")
@@ -109,14 +108,13 @@ class ModelMonitor:
                 # Add timestamp
                 metrics["timestamp"] = datetime.now().isoformat()
                 self.metrics_history.append(metrics)
-                
+
                 # Save updated metrics history
                 self._save_json_file(self.metrics_history_file, self.metrics_history)
 
                 return metrics
             else:
-                logger.error(
-                    f"Failed to get metrics: HTTP {response.status_code}")
+                logger.error(f"Failed to get metrics: HTTP {response.status_code}")
                 return None
         except Exception as e:
             logger.error(f"Error getting model metrics: {str(e)}")
@@ -125,8 +123,7 @@ class ModelMonitor:
     def get_recent_predictions(self):
         """Get recent model predictions"""
         try:
-            response = requests.get(
-                f"{self.api_url}/api/monitoring/recent_predictions")
+            response = requests.get(f"{self.api_url}/api/monitoring/recent_predictions")
             if response.status_code == 200:
                 predictions = response.json().get("predictions", [])
                 logger.info(f"Retrieved {len(predictions)} recent predictions")
@@ -137,18 +134,19 @@ class ModelMonitor:
                     if pred not in self.predictions_log:
                         self.predictions_log.append(pred)
                         new_predictions_added = True
-                
+
                 # Save updated predictions log if there are new predictions
                 if new_predictions_added:
                     # Keep only the last 1000 predictions to avoid huge files
                     if len(self.predictions_log) > 1000:
                         self.predictions_log = self.predictions_log[-1000:]
-                    self._save_json_file(self.predictions_log_file, self.predictions_log)
+                    self._save_json_file(
+                        self.predictions_log_file, self.predictions_log
+                    )
 
                 return predictions
             else:
-                logger.error(
-                    f"Failed to get predictions: HTTP {response.status_code}")
+                logger.error(f"Failed to get predictions: HTTP {response.status_code}")
                 return []
         except Exception as e:
             logger.error(f"Error getting recent predictions: {str(e)}")
@@ -158,7 +156,8 @@ class ModelMonitor:
         """Analyze data drift by comparing recent predictions to reference data"""
         if self.reference_data is None or len(prediction_data) == 0:
             logger.warning(
-                "Cannot analyze drift: missing reference data or predictions")
+                "Cannot analyze drift: missing reference data or predictions"
+            )
             return None
 
         # Convert prediction data to DataFrame
@@ -192,27 +191,26 @@ class ModelMonitor:
                     "mean_difference": mean_diff,
                     "mean_difference_percent": mean_pct,
                     "normalized_difference": normalized_diff,
-                    "drift_detected": normalized_diff > 1.0  # Threshold
+                    "drift_detected": normalized_diff > 1.0,  # Threshold
                 }
 
         # Overall drift score
-        drift_scores = [m["normalized_difference"]
-                        for m in drift_metrics.values()]
-        overall_drift = sum(drift_scores) / \
-            len(drift_scores) if drift_scores else 0
+        drift_scores = [m["normalized_difference"] for m in drift_metrics.values()]
+        overall_drift = sum(drift_scores) / len(drift_scores) if drift_scores else 0
 
         result = {
             "timestamp": datetime.now().isoformat(),
             "sample_size": len(pred_df),
             "feature_drift": drift_metrics,
             "overall_drift_score": overall_drift,
-            "drift_detected": overall_drift > 0.7  # Threshold for overall drift
+            "drift_detected": overall_drift > 0.7,  # Threshold for overall drift
         }
 
         logger.info(
-            f"Drift analysis: score={overall_drift:.4f}, drift_detected={result['drift_detected']}")
+            f"Drift analysis: score={overall_drift:.4f}, drift_detected={result['drift_detected']}"
+        )
         self.drift_history.append(result)
-        
+
         # Save updated drift history
         self._save_json_file(self.drift_history_file, self.drift_history)
 
@@ -238,7 +236,7 @@ class ModelMonitor:
             "timestamp": timestamp,
             "metrics": metrics,
             "drift_analysis": drift_analysis,
-            "predictions_count": len(recent_predictions)
+            "predictions_count": len(recent_predictions),
         }
 
         # Save report as JSON
@@ -258,8 +256,10 @@ class ModelMonitor:
         if drift_analysis.get("feature_drift"):
             plt.figure(figsize=(12, 8))
             features = list(drift_analysis["feature_drift"].keys())
-            drift_values = [drift_analysis["feature_drift"][f]
-                            ["normalized_difference"] for f in features]
+            drift_values = [
+                drift_analysis["feature_drift"][f]["normalized_difference"]
+                for f in features
+            ]
 
             # Sort by drift magnitude
             sorted_indices = np.argsort(drift_values)[::-1]
@@ -267,12 +267,17 @@ class ModelMonitor:
             drift_values = [drift_values[i] for i in sorted_indices]
 
             # Plot
-            plt.barh(features, drift_values, color=plt.cm.viridis(
-                np.array(drift_values) / max(max(drift_values), 1)))
-            plt.axvline(x=1.0, color='r', linestyle='--', alpha=0.7)
-            plt.xlabel('Normalized Drift (Z-score)')
-            plt.ylabel('Features')
-            plt.title('Feature Drift Analysis')
+            plt.barh(
+                features,
+                drift_values,
+                color=plt.cm.viridis(
+                    np.array(drift_values) / max(max(drift_values), 1)
+                ),
+            )
+            plt.axvline(x=1.0, color="r", linestyle="--", alpha=0.7)
+            plt.xlabel("Normalized Drift (Z-score)")
+            plt.ylabel("Features")
+            plt.title("Feature Drift Analysis")
             plt.tight_layout()
             plt.savefig(os.path.join(report_dir, "feature_drift.png"))
             plt.close()
@@ -280,16 +285,16 @@ class ModelMonitor:
         # 2. Drift over time
         if len(self.drift_history) > 1:
             plt.figure(figsize=(10, 6))
-            timestamps = [datetime.fromisoformat(
-                d["timestamp"]) for d in self.drift_history]
-            drift_scores = [d["overall_drift_score"]
-                            for d in self.drift_history]
+            timestamps = [
+                datetime.fromisoformat(d["timestamp"]) for d in self.drift_history
+            ]
+            drift_scores = [d["overall_drift_score"] for d in self.drift_history]
 
-            plt.plot(timestamps, drift_scores, marker='o')
-            plt.axhline(y=0.7, color='r', linestyle='--', alpha=0.7)
+            plt.plot(timestamps, drift_scores, marker="o")
+            plt.axhline(y=0.7, color="r", linestyle="--", alpha=0.7)
             plt.xticks(rotation=45)
-            plt.ylabel('Overall Drift Score')
-            plt.title('Data Drift Over Time')
+            plt.ylabel("Overall Drift Score")
+            plt.title("Data Drift Over Time")
             plt.tight_layout()
             plt.savefig(os.path.join(report_dir, "drift_over_time.png"))
             plt.close()
@@ -302,7 +307,8 @@ class ModelMonitor:
         health_response = requests.get(f"{self.api_url}/api/health")
         if health_response.status_code != 200:
             logger.error(
-                f"Model API health check failed: {health_response.status_code}")
+                f"Model API health check failed: {health_response.status_code}"
+            )
             return False
 
         # Load reference data if not loaded
@@ -330,8 +336,7 @@ def run_continuous_monitoring(interval_minutes=60):
     monitor = ModelMonitor()
     monitor.load_reference_data()
 
-    logger.info(
-        f"Starting continuous monitoring every {interval_minutes} minutes")
+    logger.info(f"Starting continuous monitoring every {interval_minutes} minutes")
 
     while True:
         try:
@@ -340,8 +345,7 @@ def run_continuous_monitoring(interval_minutes=60):
             logger.error(f"Error in monitoring cycle: {str(e)}")
 
         # Wait for next cycle
-        logger.info(
-            f"Waiting {interval_minutes} minutes until next monitoring cycle")
+        logger.info(f"Waiting {interval_minutes} minutes until next monitoring cycle")
         time.sleep(interval_minutes * 60)
 
 

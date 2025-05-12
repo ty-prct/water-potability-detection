@@ -23,8 +23,9 @@ def test_data_loading():
     data_path = "data/clean_data.csv"
     # Skip test if data file doesn't exist (it might be DVC tracked and not available in CI)
     if not os.path.exists(data_path):
-        pytest.skip(f"Data file {data_path} does not exist, possibly needs DVC pull.")
-    
+        pytest.skip(
+            f"Data file {data_path} does not exist, possibly needs DVC pull.")
+
     data = pd.read_csv(data_path)
     assert not data.empty, "Clean data file is empty."
 
@@ -34,8 +35,9 @@ def test_data_loading():
 def test_model_loading():
     model_path = "models/random_forest_model.pkl"
     if not os.path.exists(model_path):
-        pytest.skip(f"Model file {model_path} does not exist, possibly needs DVC pull.")
-        
+        pytest.skip(
+            f"Model file {model_path} does not exist, possibly needs DVC pull.")
+
     try:
         with open(model_path, "rb") as file:
             model = pickle.load(file)
@@ -50,8 +52,9 @@ def test_model_loading():
 def test_model_prediction():
     model_path = "models/random_forest_model.pkl"
     if not os.path.exists(model_path):
-        pytest.skip(f"Model file {model_path} does not exist, possibly needs DVC pull.")
-    
+        pytest.skip(
+            f"Model file {model_path} does not exist, possibly needs DVC pull.")
+
     try:
         with open(model_path, "rb") as file:
             model = pickle.load(file)

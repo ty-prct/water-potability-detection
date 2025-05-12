@@ -21,3 +21,8 @@ starlette-prometheus
 requests
 jinja2
 python-multipart
+httpx
+dvc-objects
+dvcx
+dvc-ssh
+pytest-cov
