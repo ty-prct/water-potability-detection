@@ -70,7 +70,7 @@ jobs:
           dvc remote modify cache type symlink
 
           # Pull data from the remote cache
-          dvc pull || echo "Warning: Some files may be missing in the cache."
+          dvc pull --force || echo "Warning: Some files may be missing in the cache."
 
           # Display configured remotes for verification
           dvc remote list
@@ -78,7 +78,7 @@ jobs:
       - name: Pull data with DVC
         run: |
           # Pull data from the configured remote
-          dvc pull -v
+          dvc pull -v --force
 
       - name: Train model
         run: |
