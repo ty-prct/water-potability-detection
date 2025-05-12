@@ -115,6 +115,7 @@ jobs:
           pushd ../dvc-cache
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          git remote set-url origin https://x-access-token:${{ secrets.ACTIONS_PAT }}@github.com/ty-prct/dvc-cache.git
           git add .dvc/cache
           git commit -m "CI: update DVC cache [skip ci]" || echo "No changes"
           git push origin main
