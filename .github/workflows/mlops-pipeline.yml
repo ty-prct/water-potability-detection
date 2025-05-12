@@ -61,14 +61,25 @@ jobs:
         run: git clone https://github.com/ty-prct/dvc-cache.git ../dvc-cache
         working-directory: ${{ github.workspace }}
 
-      - name: Configure DVC remote
+      - name: Configure DVC remote and autostage
         working-directory: ${{ github.workspace }}
         run: |
+          # Initialize DVC (if not already initialized)
           dvc init
+
+          # Enable automatic staging of .dvc files
+          dvc config core.autostage true
+
+          # Remove any old 'cache' remote
           dvc remote remove cache || true
+
+          # Point to the actual cache directory inside the cloned repo
           dvc remote add -d cache ../dvc-cache/.dvc/cache
+
+          # Unset forced symlink type so DVC auto-selects reflink/hardlink
           dvc remote modify cache --unset cache.type
 
+          # Verify configuration
           dvc remote list
 
       - name: Pull data with DVC
