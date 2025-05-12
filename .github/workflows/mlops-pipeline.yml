@@ -1,8 +1,7 @@
 name: Water Potability MLOps Pipeline
 
-# Grant read/write on repo contents so 'git push' from GH Actions succeeds
 permissions:
-  contents: write # 'write' implies 'read' as well :contentReference[oaicite:5]{index=5}
+  contents: write # Grant write access so GH Actions can push commits :contentReference[oaicite:4]{index=4}
 
 on:
   push:
@@ -10,7 +9,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: "0 0 * * 0" # Weekly run to check for data drift
+    - cron: "0 0 * * 0"
 
 jobs:
   test:
@@ -41,9 +40,9 @@ jobs:
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
-    # All `run:` steps execute in the repo root ($GITHUB_WORKSPACE) where .dvc/ exists
     defaults:
       run:
+        # Ensure DVC commands see .dvc/ in the repo root :contentReference[oaicite:5]{index=5}
         working-directory: ${{ github.workspace }}
 
     steps:
@@ -63,37 +62,31 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Configure Git for pushing via PAT
+      - name: Configure Git for pushes via PAT
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          # Reset 'origin' to use a Personal Access Token with repo permissions
           git remote set-url origin https://x-access-token:${{ secrets.ACTIONS_PAT }}@github.com/${{ github.repository }}.git
 
       - name: Clone DVC cache repo
         run: git clone https://github.com/ty-prct/dvc-cache.git ../dvc-cache
 
-      - name: Configure DVC remote and autostage
+      - name: Configure DVC & autostage
         run: |
-          # Ensure DVC is initialized here
+          # Re-init DVC and enable auto-staging of .dvc metadata :contentReference[oaicite:6]{index=6}
           dvc init --force
-
-          # Automatically stage all .dvc metadata into Git after DVC commands
           dvc config core.autostage true
 
-          # Remove any existing 'cache' remote
+          # Set up the cache remote to point at the cloned repo’s blob store
           dvc remote remove cache || true
-          # Point to the actual DVC blob store in the cloned cache repo
           dvc remote add -d cache ../dvc-cache/.dvc/cache
           dvc remote modify cache url ../dvc-cache/.dvc/cache
           dvc remote modify cache verify true
 
-          # List remotes for verification
           dvc remote list
 
       - name: Pull data with DVC
-        run: |
-          dvc pull --remote cache --verbose --force
+        run: dvc pull --remote cache --verbose --force
 
       - name: Train model
         run: python src/scripts/train_pipeline.py
@@ -110,17 +103,24 @@ jobs:
             results/evaluation_results*.json
             results/feature_importance*.csv
 
-      - name: Update DVC tracked files
+      - name: Update DVC tracked files & push cache
         run: |
-          # Track new model artifacts
+          # Track new model artifacts with DVC
           dvc add models/*.pkl results/best_model*.pkl
 
-          # Push them to the DVC cache
-          dvc push --remote cache
+          # Push artifacts into the cloned cache :contentReference[oaicite:7]{index=7}
+          dvc push -v
 
-          # Commit DVC metadata changes (autostaged)
+          # Commit & push the cache repo so blobs persist :contentReference[oaicite:8]{index=8}
+          pushd ../dvc-cache
+          git add .dvc/cache
+          git commit -m "CI: update DVC cache [skip ci]" || echo "No changes"
+          git push origin main
+          popd
+
+          # Commit the updated DVC metadata in the main repo
           git add .
-          git commit -m "Update model artifacts [skip ci]" || echo "No changes to commit"
+          git commit -m "CI: update model artifacts [skip ci]" || echo "No changes"
           git push
 
   build-and-deploy:
@@ -130,8 +130,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Download model artifacts
         uses: actions/download-artifact@v4
@@ -158,7 +157,6 @@ jobs:
       - name: Deploy to production
         run: |
           echo "Deploying to production environment..."
-          # Add your deployment commands here
 
   model-monitoring:
     name: Model Monitoring
@@ -167,8 +165,7 @@ jobs:
     if: github.event_name == 'schedule'
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -184,5 +181,4 @@ jobs:
         run: python src/scripts/model_monitoring.py
 
       - name: Check for drift and trigger retraining if needed
-        run: |
-          echo "Checking for model drift..."
+        run: echo "Checking for model drift..."
