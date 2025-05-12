@@ -52,8 +52,7 @@ try:
             models["B"] = pickle.load(file)
         logger.info(f"Model B (secondary) loaded from {MODEL_B_PATH}")
 except Exception as e:
-    logger.warning(
-        f"Failed to load Model B: {str(e)}. A/B testing will be disabled.")
+    logger.warning(f"Failed to load Model B: {str(e)}. A/B testing will be disabled.")
 
 # Default to model A
 model = models["A"]
@@ -124,10 +123,8 @@ class WaterQualityData(BaseModel):
     Chloramines: float = Field(..., description="Chloramines level", ge=0)
     Sulfate: float = Field(..., description="Sulfate content", ge=0)
     Conductivity: float = Field(..., description="Conductivity of water", ge=0)
-    Organic_carbon: float = Field(...,
-                                  description="Organic carbon content", ge=0)
-    Trihalomethanes: float = Field(...,
-                                   description="Trihalomethanes level", ge=0)
+    Organic_carbon: float = Field(..., description="Organic carbon content", ge=0)
+    Trihalomethanes: float = Field(..., description="Trihalomethanes level", ge=0)
     Turbidity: float = Field(..., description="Turbidity level", ge=0)
 
     # Add validators to check reasonable ranges
@@ -223,13 +220,11 @@ def predict(data: WaterQualityData):
                 )
             ]
             # Sort by importance
-            feature_importance.sort(
-                key=lambda x: x["importance"], reverse=True)
+            feature_importance.sort(key=lambda x: x["importance"], reverse=True)
 
         # Calculate latency
         latency_ms = (datetime.now() - start_time).total_seconds() * 1000
-        ab_testing_config["metrics"][model_version]["latency_ms"].append(
-            latency_ms)
+        ab_testing_config["metrics"][model_version]["latency_ms"].append(latency_ms)
 
         # Keep only last 100 latency measurements
         if len(ab_testing_config["metrics"][model_version]["latency_ms"]) > 100:
@@ -261,8 +256,7 @@ def predict(data: WaterQualityData):
 
     except Exception as e:
         logger.error(f"Prediction error: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Prediction error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
 
 
 @app.get("/api/health")
@@ -307,8 +301,7 @@ def get_ab_testing_stats():
     for version, metrics in ab_testing_config["metrics"].items():
         avg_latency = 0
         if metrics["latency_ms"]:
-            avg_latency = sum(metrics["latency_ms"]) / \
-                len(metrics["latency_ms"])
+            avg_latency = sum(metrics["latency_ms"]) / len(metrics["latency_ms"])
 
         stats["metrics"][version] = {
             "requests": metrics["requests"],
@@ -329,8 +322,7 @@ def configure_ab_testing(config: dict):
     if "traffic_split" in config:
         # Ensure traffic split sums to 1.0
         if abs(sum(config["traffic_split"].values()) - 1.0) > 0.001:
-            raise HTTPException(
-                status_code=400, detail="Traffic split must sum to 1.0")
+            raise HTTPException(status_code=400, detail="Traffic split must sum to 1.0")
 
         # Ensure both versions are included
         if not all(v in config["traffic_split"] for v in ["A", "B"]):
