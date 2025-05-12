@@ -67,7 +67,7 @@ jobs:
           dvc remote add -d cache ../dvc-cache/cache
 
           # Configure the remote to use symlinks for optimization
-          dvc remote modify cache cache.type symlink
+          dvc remote modify cache type symlink
 
           # Display configured remotes for verification
           dvc remote list
