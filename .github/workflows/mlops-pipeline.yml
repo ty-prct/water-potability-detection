@@ -113,6 +113,8 @@ jobs:
 
           # Commit & push the cache repo so blobs persist :contentReference[oaicite:8]{index=8}
           pushd ../dvc-cache
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
           git add .dvc/cache
           git commit -m "CI: update DVC cache [skip ci]" || echo "No changes"
           git push origin main
