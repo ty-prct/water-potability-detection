@@ -13,7 +13,7 @@ on:
 
 jobs:
   test:
-    name: Test
+    name: Initialization
     runs-on: ubuntu-latest
 
     steps:
