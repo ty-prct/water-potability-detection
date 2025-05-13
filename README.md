@@ -2,7 +2,7 @@
 
 This project implements an end-to-end MLOps pipeline for water potability detection based on water quality parameters. The system uses machine learning to predict whether water is potable or not.
 
-Visit at : [https://ty-prct.github.io/water-potability-detection/](https://ty-prct.github.io/water-potability-detection/)
+Visit at : [https://ty-prct.github.io/water-potability-detection](https://yashpotdar-py.github.io/water-potability-detection/)
 ---
 
 ## Features
