@@ -69,7 +69,7 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.ACTIONS_PAT }}@github.com/${{ github.repository }}.git
 
       - name: Clone DVC cache repo
-        run: git clone https://github.com/ty-prct/dvc-cache.git ../dvc-cache
+        run: git clone https://github.com/yashpotdar-py/dvc-cache ../dvc-cache
 
       - name: Configure DVC & autostage
         run: |
