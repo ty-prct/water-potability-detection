@@ -33,6 +33,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -e .
+      
+      - name: Check main repository availability
+        run: |
+          echo "Checking access to main repository..."
+          if ! git ls-remote origin; then
+            echo "ERROR: Unable to access main repository." >&2
+            exit 1
+          fi
+
+      - name: Check DVC cache repository availability
+        run: |
+          echo "Checking access to DVC cache repository..."
+          if ! git ls-remote https://github.com/yashpotdar-py/dvc-cache.git; then
+            echo "ERROR: Unable to access DVC cache repository." >&2
+            exit 1
+          fi
 
   train-and-evaluate:
     name: Train and Evaluate Model
